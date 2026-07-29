@@ -31,7 +31,7 @@ github.devまたはGitHubでコードを確認
 6. `Run workflow`を押す
 7. 成功後、`Settings` → `Pages`に表示される公開先を開く
 
-Workflowは`main`の対象ファイルを変更した場合にも自動実行されます。
+Workflowは`main`の対象ファイルを変更した場合にも自動実行されます。Pull Requestではコンパイル確認だけを行い、Pagesへの公開は行いません。
 
 ## 構成
 
