@@ -1,0 +1,12 @@
+build/
+pico-sdk/
+third_party/eigen/
+.ccache/
+site/
+output/
+*.uf2
+*.elf
+*.bin
+*.hex
+*.map
+.DS_Store
