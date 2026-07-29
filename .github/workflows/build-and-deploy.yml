@@ -6,22 +6,14 @@ on:
     branches:
       - main
     paths:
-      - "source/**"
-      - "CMakeLists.txt"
-      - "SOURCE_SHA256SUMS.txt"
+      - "firmware/pico_copter/**"
       - "web/**"
       - ".github/workflows/build-and-deploy.yml"
       - "README.md"
   pull_request:
-    branches:
-      - main
     paths:
-      - "source/**"
-      - "CMakeLists.txt"
-      - "SOURCE_SHA256SUMS.txt"
-      - "web/**"
+      - "firmware/pico_copter/**"
       - ".github/workflows/build-and-deploy.yml"
-      - "README.md"
 
 permissions:
   contents: read
@@ -50,10 +42,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify uploaded program source is unchanged
+      - name: Verify firmware source is unchanged
         shell: bash
         run: |
           set -euxo pipefail
+          cd firmware/pico_copter
           sha256sum --check --strict SOURCE_SHA256SUMS.txt
 
       - name: Restore Pico SDK cache
@@ -132,7 +125,7 @@ jobs:
         with:
           path: .ccache
           key: >-
-            ccache-${{ runner.os }}-pico-${{ env.PICO_SDK_REF }}-${{ env.EIGEN_REF }}-${{ hashFiles('source/**', 'CMakeLists.txt') }}
+            ccache-${{ runner.os }}-pico-${{ env.PICO_SDK_REF }}-${{ env.EIGEN_REF }}-${{ hashFiles('firmware/pico_copter/**') }}
           restore-keys: |
             ccache-${{ runner.os }}-pico-${{ env.PICO_SDK_REF }}-${{ env.EIGEN_REF }}-
 
@@ -158,7 +151,7 @@ jobs:
         run: |
           set -o pipefail
           cmake \
-            -S . \
+            -S firmware/pico_copter \
             -B build \
             -G Ninja \
             -DPICO_SDK_PATH="${PICO_SDK_PATH}" \
@@ -225,7 +218,7 @@ jobs:
           manifest = {
               "appId": "pico_copter",
               "appName": "Pico Copter",
-              "description": "アップロードされた元プログラムを変更せずにビルドしたUF2です。",
+              "description": "firmware/pico_copter内のプログラムからビルドしたUF2です。",
               "boardId": "pico",
               "boardName": "Raspberry Pi Pico",
               "file": "pico_copter.uf2",
@@ -233,12 +226,13 @@ jobs:
               "size": int(os.environ["UF2_SIZE"]),
               "sha256": os.environ["UF2_SHA256"],
               "sourceCommit": os.environ["GITHUB_SHA"],
+              "sourcePath": "firmware/pico_copter",
               "picoSdkRef": os.environ["PICO_SDK_REF"],
               "eigenVersion": os.environ["EIGEN_VERSION"],
               "eigenRef": os.environ["EIGEN_REF"],
               "builtAt": os.environ["BUILT_AT"],
               "repository": os.environ["GITHUB_REPOSITORY"],
-              "sourceIntegrity": "SOURCE_SHA256SUMS.txt verified",
+              "sourceIntegrity": "firmware/pico_copter/SOURCE_SHA256SUMS.txt verified",
           }
 
           text = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
