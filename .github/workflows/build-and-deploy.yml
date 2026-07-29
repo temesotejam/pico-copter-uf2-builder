@@ -12,6 +12,16 @@ on:
       - "web/**"
       - ".github/workflows/build-and-deploy.yml"
       - "README.md"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "source/**"
+      - "CMakeLists.txt"
+      - "SOURCE_SHA256SUMS.txt"
+      - "web/**"
+      - ".github/workflows/build-and-deploy.yml"
+      - "README.md"
 
 permissions:
   contents: read
