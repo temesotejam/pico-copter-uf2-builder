@@ -31,3 +31,5 @@ cmake --build build --parallel
 ```bash
 -DEIGEN3_INCLUDE_DIR=/path/to/eigen
 ```
+
+<!-- portable-layout-ci-validation -->
