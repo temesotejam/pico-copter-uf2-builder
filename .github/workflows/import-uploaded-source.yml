@@ -1,0 +1,101 @@
+name: Import uploaded Pico Copter source
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/import-uploaded-source.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-uploaded-pico-copter-source
+  cancel-in-progress: false
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct uploaded ZIP source archive
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          cat \
+            .import/source.b64.00 \
+            .import/source.b64.01 \
+            .import/source.b64.02-pre \
+            .import/source.b64.02 \
+            .import/source.b64.03 \
+            .import/source.b64.05 \
+            > /tmp/pico-copter-source.b64
+
+          test "$(wc -c < /tmp/pico-copter-source.b64)" -eq 47608
+          echo "23f9e22606fffabfa29c0116e84a44ccb197e6b0fc5637b7d933bd6e9a255fa0  /tmp/pico-copter-source.b64" \
+            | sha256sum --check --strict
+
+          base64 --decode /tmp/pico-copter-source.b64 \
+            > /tmp/pico-copter-source.tar.gz
+          echo "d111ebb0335451c689c3a8ff4520b96fa1669e781c1160ea52ca5243925bf148  /tmp/pico-copter-source.tar.gz" \
+            | sha256sum --check --strict
+
+      - name: Replace source directory from uploaded archive
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          rm -rf /tmp/pico-copter-source source
+          mkdir -p /tmp/pico-copter-source source
+          tar -xzf /tmp/pico-copter-source.tar.gz \
+            -C /tmp/pico-copter-source
+          cp -a /tmp/pico-copter-source/. source/
+
+      - name: Verify original program source hashes
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          cat > /tmp/source-sha256sums.txt <<'EOF'
+          1c22a963e3440287a95df52a1e748dc5039fbbfc4025a3c42e4d03efb07e3dbf  source/pico_copter.cpp
+          aa7c5474745dbc64288f3890c1d02e00b7292bef9818c27c4227d24962704b19  source/pico_copter.hpp
+          80ac784da3c02ea4a4b773e8b6e952be7d10b4fde2b49d1285d954c2cc78d139  source/control.cpp
+          22963ab1d01cada3470faf3a3568811763d2aad2031653a1faef6bb8152f2c3e  source/control.hpp
+          39c54210770a0d075a6c4f46fdedd7778341224edd64b6ae83e6cec85164f3ab  source/ekf.cpp
+          b696913636ef787e837d810b4658f960ff52573f4192a6dea1a7425ad95780b5  source/ekf.hpp
+          cc55e4188301ef74b0eae7184e3264a076c82f14683b9c6072833ab697af261b  source/sensor.cpp
+          067f73d957e2a2880e37bed13e874f4a4fc9e67889692845ddcfc4c55f175d9d  source/sensor.hpp
+          ca3265ef61deb6ec4f5f62dac1e29de2ed3222bb022271699be9e3897fdf910b  source/pwm.cpp
+          09cb53a0177df801533f6e5318a3fc85d74818f585739ee8357dfb54477375ff  source/pwm.hpp
+          a0a57d58b0669921587e1042be3b87c82848f5365bb27d1fa5b893f7fbf17389  source/radio.cpp
+          cb821fa03cda32ef08b849350da1a19d14dd0a088d885e76062199412d091eab  source/radio.hpp
+          a89192d81e092f47270fddf8c289f2fd3b2f01d8202981c2cd840513614784a1  source/lsm9ds1_reg.c
+          73cd777a6325f2e2466a89d45ed38f6a7bb6ba4a5f87ca388dcf11c1425e5fa7  source/lsm9ds1_reg.h
+          EOF
+          sha256sum --check --strict /tmp/source-sha256sums.txt
+
+      - name: Commit imported source
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source
+
+          if git diff --cached --quiet; then
+            echo "Uploaded source is already imported."
+            exit 0
+          fi
+
+          git commit -m "Import uploaded Pico Copter source"
+          git push origin HEAD:main
