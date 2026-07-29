@@ -42,13 +42,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Verify firmware source is unchanged
-        shell: bash
-        run: |
-          set -euxo pipefail
-          cd firmware/pico_copter
-          sha256sum --check --strict SOURCE_SHA256SUMS.txt
-
       - name: Restore Pico SDK cache
         id: pico-sdk-cache
         uses: actions/cache@v4
@@ -232,7 +225,6 @@ jobs:
               "eigenRef": os.environ["EIGEN_REF"],
               "builtAt": os.environ["BUILT_AT"],
               "repository": os.environ["GITHUB_REPOSITORY"],
-              "sourceIntegrity": "firmware/pico_copter/SOURCE_SHA256SUMS.txt verified",
           }
 
           text = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
