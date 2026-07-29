@@ -10,7 +10,7 @@ Raspberry Pi Pico用のPico Copterファームウェアを、GitHub Actionsで�
 firmware/pico_copter/
 ```
 
-他人と共有するときは、このフォルダをそのまま取り出せます。フォルダ内には、プログラム本体、独立ビルド用`CMakeLists.txt`、ビルド手順、ソース整合性ファイルが入っています。
+他人と共有するときは、このフォルダをそのまま取り出せます。フォルダ内には、プログラム本体、独立ビルド用`CMakeLists.txt`、ビルド手順が入っています。
 
 ```text
 firmware/pico_copter/
@@ -22,13 +22,24 @@ firmware/pico_copter/
 ├─ radio.cpp / .hpp
 ├─ lsm9ds1_reg.c / .h
 ├─ CMakeLists.txt
-├─ SOURCE_SHA256SUMS.txt
 └─ README.md
 ```
 
-`.cpp`、`.hpp`、`.c`、`.h`は、提供された元プログラムから内容を変更していません。GitHub Actionsは毎回`SOURCE_SHA256SUMS.txt`を検証し、プログラムファイルが意図せず変化している場合はビルドを停止します。
-
 GitHub Actions、キャッシュ、Web配布画面などは、ファームウェアフォルダの外側に分離しています。
+
+## github.devでファームウェアを編集する
+
+通常のGitHubで編集したいファイルを開き、キーボードの`.`キーを押すと、同じリポジトリを`github.dev`で開けます。
+
+主な編集対象は次のフォルダです。
+
+```text
+firmware/pico_copter/
+```
+
+編集後は、左側のソース管理から変更内容を入力して`Commit & Push`を実行します。`main`へ反映されるとGitHub Actionsが自動的にコンパイルし、成功したUF2をPagesへ公開します。Pull Requestではコンパイル確認だけを行います。
+
+ファームウェアの変更履歴はGitで管理されるため、以前の状態はGitHubのコミット履歴から確認・復元できます。
 
 ## リポジトリ構成
 
@@ -123,9 +134,9 @@ build.log
 
 通常Artifactと診断ログの保持期間は1日です。GitHub Pagesには最後に成功したUF2が公開されます。
 
-## 元コード内の問題について
+## コンパイルエラーについて
 
-元の`.cpp/.hpp/.c/.h`にコンパイルエラーやリンクエラーが見つかった場合、Workflowのログへそのまま表示します。プログラム本体を自動修正することはありません。
+編集した`.cpp/.hpp/.c/.h`にコンパイルエラーやリンクエラーがある場合、Workflowのログへそのまま表示されます。Workflowがプログラム本体を自動修正することはありません。
 
 ## UF2の書き込み
 
