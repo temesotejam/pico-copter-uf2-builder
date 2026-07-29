@@ -32,4 +32,3 @@ extern uint16_t Chdata[18];
 
 //グローバル関数の宣言
 void radio_init(void);
-
